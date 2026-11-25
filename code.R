@@ -1,3 +1,22 @@
+# Version naming (added 2026-11-25)
+# Two builds are distinguished so that both the distributed index and the
+# published article remain reproducible:
+# * 1.0.1 - coefficient-correct build (current release).
+#   The CKMAI index is computed with the original signed Cox coefficients,
+#   preserving the direction of every component. This is the version
+#   distributed for risk calculation in CKMAIcalc and the online calculator.
+#   A frozen copy of the previous coefficient file is retained as
+#   inst/extdata/CKMAI_params_legacy_abs.rds, used only as the input of the
+#   frozen CKM-high logistic model; it is not the released index.
+# * 1.0.0 - manuscript-reproduction build (previous release).
+#   The index was computed with the absolute values of the Cox coefficients
+#   (code.R, line 648 in that build). This build reproduces the downstream
+#   quantities reported in the published article (high-risk thresholds, RERI,
+#   hazard ratios, RCS, Figure 3 and the supplementary tables).
+# The serialized model objects (all-cause Cox, CVD Cox, CKM-high logistic)
+# are byte-for-byte identical in both builds. No model was refitted.
+# See NEWS.md in CKMAIcalc for the same version statement.
+
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 options(mc.cores = parallel::detectCores())
 if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
@@ -645,7 +664,7 @@ if (inherits(best_fit, c("coxnet", "coxph", "glmnet", "lognet"))) {
   }
   coef_vec <- coef_vec[best_vars]
   coef_vec[is.na(coef_vec)] <- 0
-  weights <- abs(coef_vec)
+  weights <- coef_vec   # 1.0.1: 保留系数符号（方向保真），不再取绝对值
 } else if (inherits(best_fit, "rfsrc")) {
   vimp <- best_fit$importance
   weights <- abs(vimp[best_vars])
